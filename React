@@ -1,0 +1,67 @@
+local UserInputService = game:GetService("UserInputService")
+local ball = script.Parent:WaitForChild("Ball") -- تأكد من أن لديك كائن الكرة في اللعبة
+local head = script.Parent:WaitForChild("Head") -- تأكد من أن لديك كائن الرأس في اللعبة
+local body = script.Parent:WaitForChild("Body") -- تأكد من أن لديك كائن الجسم في اللعبة
+
+local ballSpeed = 1
+
+-- تحديثات لتدوير الجسم والرأس بناءً على تحريك الماوس
+local function updateRotation()
+    local mousePosition = UserInputService:GetMouseLocation()
+    local centerX = game.Workspace.CurrentCamera.ViewportSize.X / 2
+    local centerY = game.Workspace.CurrentCamera.ViewportSize.Y / 2
+
+    local deltaX = (mousePosition.X - centerX) / centerX
+    local deltaY = (mousePosition.Y - centerY) / centerY
+
+    body.CFrame = body.CFrame * CFrame.Angles(math.rad(deltaY * 300), math.rad(deltaX * 300), 0)
+    head.CFrame = head.CFrame * CFrame.Angles(math.rad(deltaY * 500), math.rad(deltaX * 500), 0)
+end
+
+-- حدث التحريك مع الماوس
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        updateRotation()
+    end
+end)
+
+-- حدث ضرب الكرة
+local function handleBallHit()
+    ballSpeed = 10 -- زيادة سرعة الكرة عند ضربها بالرأس
+    local bodyVelocity = ball:FindFirstChildOfClass("BodyVelocity")
+    if bodyVelocity then
+        bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)  -- زيادة القوة المطبقة على الكرة
+    end
+
+    wait(0.5)
+
+    ballSpeed = 1 -- إرجاع السرعة بعد فترة قصيرة
+    if bodyVelocity then
+        bodyVelocity.MaxForce = Vector3.new(5000, 5000, 5000)  -- إعادة القوة إلى وضعها الطبيعي
+    end
+end
+
+-- إضافة وظيفة عند الضغط على الكرة
+ball.Touched:Connect(function(hit)
+    if hit and hit.Parent then
+        handleBallHit()
+    end
+end)
+
+-- عرض الرسالة عند تفعيل النظام
+local function showMessage()
+    local messageBox = Instance.new("TextLabel")
+    messageBox.Text = "⚠️ نظام الاستجابة الخارقة مفعل! ⚠️"
+    messageBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    messageBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    messageBox.Position = UDim2.new(0.5, -150, 0, 10)
+    messageBox.Size = UDim2.new(0, 300, 0, 40)
+    messageBox.TextScaled = true
+    messageBox.Parent = game:GetService("Players").LocalPlayer.PlayerGui
+
+    wait(3)
+    messageBox:Destroy()
+end
+
+-- تنفيذ عرض الرسالة عند بداية اللعبة
+showMessage()
